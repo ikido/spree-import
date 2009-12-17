@@ -1,29 +1,12 @@
 namespace :db do
-  desc "Bootstrap your database for Spree."
-  task :bootstrap  => :environment do
-    # load initial database fixtures (in db/sample/*.yml) into the current environment's database
-    ActiveRecord::Base.establish_connection(RAILS_ENV.to_sym)
-    Dir.glob(File.join(ImportExtension.root, "db", 'sample', '*.{yml,csv}')).each do |fixture_file|
-      Fixtures.create_fixtures("#{ImportExtension.root}/db/sample", File.basename(fixture_file, '.*'))
-    end
-  end
 
   desc "Load a txt/csv file."
   task :import  => :environment do
-    require 'import'
-    Import.new.run
+    require 'my_import'
+    MyImport.new.run
   end
 
   
-  desc  "Removing default data (countries, zones..)"
-  task :clear_defaults  => :environment do
-    [Country , Zone , ZoneMember , State].each do |clazz|
-      while first = clazz.first  
-        #puts "Deleting + " + first.to_s
-        first.delete
-      end
-    end   
-  end
   desc  "Removing shipping data"
   task :clear_shipping  => :environment do
     [ShippingCategory , ShippingMethod , ShippingRate].each do |clazz|

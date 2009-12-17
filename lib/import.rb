@@ -93,6 +93,7 @@ class Import
   end
   
   def remove_products
+    return unless remove_products?
     while first = Product.first
       first.delete
     end
@@ -101,9 +102,9 @@ class Import
     end
   end
 
-  def set_attributes_and_image( prod , row )
     #these are common attributes to product & variant (in fact prod delegates to master variant)
     # so it will be called with either
+  def set_attributes_and_image( prod , row )
     if prod.class == Product
       prod.name             = at_in(:name,row) if at_in(:name,row)
       prod.description = at_in(:description, row) if at_in(:description, row)
@@ -181,7 +182,8 @@ class Import
     Dir::glob( File.join(@dir , "**", "*#{name}.*" ) ).first
   end
 
-  #
+  # given the last product name, determine if the line at index is a variant
+  # here a variants name starts with the product name, so we check for that 
   def is_line_variant?(name , index) #or file end
     #puts "variant product -#{name}-"
     return false if (index >= @data.length) 
@@ -194,6 +196,9 @@ class Import
     return name == variant[ 0 ,  name.length ] 
   end
     
+  # read all variants of the product (using is_line_variant? above)
+  # uses the :option (mapped) attribute of the product row to find/create an OptionType
+  # and the same :option attribute to create OptionValues on the Variants 
   def slurp_variants(prod , index)
     return index unless is_line_variant?(prod.name , index ) 
     #need an option type to create options, create dumy for now
@@ -260,6 +265,7 @@ class Import
 
   end
 
+  #make sure there is an admin user
   def check_admin_user(password="spree", email="spree@spreecommerce.com")      
       return if  User.find_by_login(email)
       admin = User.create( attributes = { :password => password,:password_confirmation => password,
