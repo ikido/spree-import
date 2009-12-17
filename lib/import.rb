@@ -15,7 +15,7 @@ class Import
 
       # one root taxonomy supported only. Must be set before (eg rake db:load_file)
       @taxonomy = Taxonomy.find(:first)
-      throw "No Taxonomy found, create by sample data (rake db:load_file) or override set_taxonomy method" unless @taxonomy
+      throw "No Taxonomy found, create by sample data (rake db:load_file) or override set_taxon method" unless @taxonomy
       parent = @taxonomy.root  # the root of a taxonomy is a taxon , usually with the same name (?)
       if parent == nil 
         @taxonomy.save
@@ -61,7 +61,7 @@ class Import
     categories
   end
   
-  def set_taxonomy(product , row)
+  def set_taxon(product , row)
     categories = get_categories(row)
     throw "No category for SKU: #{at_in(:sku, row)} in row (#{row})" if categories.empty?
     #puts "Categories #{categories.join('/')}"
@@ -252,7 +252,7 @@ class Import
       end
       prod = get_product(row)
       set_attributes_and_image( prod , row )
-      set_taxonomy(prod , row)
+      set_taxon(prod , row)
       #puts "saving -" + prod.description + "-  at " + at_in(:price,row) #if at_in(:price,row) == "0"
       prod.save!
       

@@ -6,7 +6,7 @@
 class MyImport < Import
 # change to true if you want existing products to be cleared out (for developemnt)
  def remove_products?
-   false
+   true
  end
  
   #override if you have your categories encoded in one field or in any other way
@@ -15,7 +15,7 @@ class MyImport < Import
   end
 
   # this sets the taxon (category) on the product. row is an array of strings
-  def set_taxonomy(product , row)  super end
+  def set_taxon(product , row)  super end
 
   #can be overwritten, we just use the sku   return a product from the db or create a new
   def get_product( row ) super end
