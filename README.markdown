@@ -17,6 +17,7 @@ All data for the import is assumed under vendor/import. We'll call it the base d
 Mapping
 =======
 Import assumes you have data from somewhere else, with headers that do not match the spree headers. A mapping.yml is assumed to exist in the base direcory. The mapping is a hash from the headers you have (string) to the spree headers (symbol). The spree headers you need are the ones you want setting, corresponding to the spree product/variant fields.
+
 - name
 - description
 - web_price		will be used as price if mapped
