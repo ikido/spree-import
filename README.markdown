@@ -9,7 +9,7 @@ But it works (at least for me) with rake db:import
 
 Edit at will, contribute if possible.
 
-Formats
+Base Directoy
 -------
 
 All data for the import is assumed under vendor/import. We'll call it the base directory (change in lib/import.rb)
@@ -17,19 +17,19 @@ All data for the import is assumed under vendor/import. We'll call it the base d
 Mapping
 =======
 Import assumes you have data from somewhere else, with headers that do not match the spree headers. A mapping.yml is assumed to exist in the base direcory. The mapping is a hash from the headers you have (string) to the spree headers (symbol). The spree headers you need are the ones you want setting, corresponding to the spree product/variant fields.
--name
--description
--web_price		will be used as price if mapped
--price			otherwise :price will be used (one of the two is mandatory)
--sku			your unique identifier
--image			the filename must be found somewhere under the base dir
--option 		used as the option type for a product and an option value for a variant (see below on variants)
--quantity 		the spree on_hand 
--category1 		category 1-3 can be used to set a 3 level category. If that doesn't fit your needs, override set_category 
--weight 		rest are self explanitory
--depth
--width
--height
+- name
+- description
+- web_price		will be used as price if mapped
+- price			otherwise :price will be used (one of the two is mandatory)
+- sku			your unique identifier
+- image			the filename must be found somewhere under the base dir
+- option 		used as the option type for a product and an option value for a variant (see below on variants)
+- quantity 		the spree on_hand 
+- category1 		category 1-3 can be used to set a 3 level category. If that doesn't fit your needs, override set_category 
+- weight 		rest are self explanitory
+- depth
+- width
+- height
 
 Files
 =====
