@@ -10,15 +10,21 @@ require 'yaml'
 class Import
   
     def initialize()
-      #Images are below SPREE/vendor/import/
-      @dir = File.join(SPREE_ROOT, "vendor", "import" )      
+      remove_products
+
+      #Images are below SPREE/vendor/importXXXX/
+      # if there are more than one, take lexically last
+      
+      @dir = Dir.glob(File.join(SPREE_ROOT, "vendor", "import*" )).last
+      puts "Loading from #{@dir}"
 
       # one root taxonomy supported only. Must be set before (eg rake db:load_file)
       @taxonomy = Taxonomy.find(:first)
       throw "No Taxonomy found, create by sample data (rake db:load_file) or override set_taxon method" unless @taxonomy
-      parent = @taxonomy.root  # the root of a taxonomy is a taxon , usually with the same name (?)
-      if parent == nil 
-        @taxonomy.save
+      root = @taxonomy.root  # the root of a taxonomy is a taxon , usually with the same name (?)
+      if root == nil 
+        @taxonomy.root = Taxon.new( :name => @taxonomy.name , :taxonomy_id => @taxonomy.id )
+        @taxonomy.save!
       end
 
       # assuming you have data from another software which generates csv (or tab delimited) data _with headers_
@@ -88,11 +94,17 @@ class Import
       puts "Found #{at_in(:sku,row)} "
       pro.product 
     else
-      Product.new( )
+      p = Product.create(  :name => "sku" , :price => 5  , :sku => "sku")
+      p.save!
+      master = Variant.find_by_sku("sku")
+      master.product = Product.find_by_name("sku")
+      master.save
+      Product.find_by_name("sku")
     end
   end
   
   def remove_products
+    check_admin_user
     return unless remove_products?
     while first = Product.first
       first.delete
@@ -100,6 +112,9 @@ class Import
     while first = Variant.first
       first.delete
     end
+#    while first = Taxon.first
+#      first.delete
+#    end
   end
 
     #these are common attributes to product & variant (in fact prod delegates to master variant)
@@ -145,7 +160,7 @@ class Import
   
   def add_image(prod , row )
     file_name = has_image(row)
-    #puts "File :   #{file_name}"
+    puts "File :   #{file_name}"
     if file_name
       type = file_name.split(".").last
       i = Image.new(:attachment => ActionController::TestUploadedFile.new(file_name, "image/#{type}" ))                        
@@ -206,7 +221,10 @@ class Import
     option = at_in( :option , prod_row )
     option = prod.name unless option
     puts "Option type -#{option}-"
-    option_type  = OptionType.find_or_create_by_name_and_presentation(option , "") 
+    option_type  = OptionType.find_or_create_by_name_and_presentation(option , option) 
+    product_option_type = ProductOptionType.new(:product => prod, :option_type => option_type)
+    product_option_type.save!
+    prod.reload
     while is_line_variant?(prod.name , index )
       #puts "variant slurp index " + index.to_s
       row = @data[index]
@@ -225,13 +243,13 @@ class Import
   end
   
   def run
-    remove_products
-    check_admin_user
     Dir.glob(File.join(@dir , '*.txt')).each do |file|
-        puts "Importing " + file
-        load_file( file )
+        puts "Importing file: " + file
+        ActiveRecord::Base.transaction do
+          load_file( file )
+        end
+      end
     end
-  end
   
   #If you want to write your own task or wrapper, this is the main entry point
   def load_file full_name
@@ -255,7 +273,7 @@ class Import
       set_taxon(prod , row)
       #puts "saving -" + prod.description + "-  at " + at_in(:price,row) #if at_in(:price,row) == "0"
       prod.save!
-      
+      throw "no master for #{prod.name}" if prod.master == nil 
 #      pr = get_product( row )
 #      puts "TAXONs #{pr.taxons}"
       
@@ -264,14 +282,13 @@ class Import
     end
 
   end
-
+  
   #make sure there is an admin user
-  def check_admin_user(password="spree", email="spree@spreecommerce.com")      
-      return if  User.find_by_login(email)
-      admin = User.create( attributes = { :password => password,:password_confirmation => password,
-                                            :email => email,      :login => email } )
+  def check_admin_user(password="spree", email="spree@example.com")
+      admin = User.find_by_login(email) ||  User.create(  :password => password,:password_confirmation => password,
+                                            :email => email, :login => email  )
       # create an admin role and and assign the admin user to that role
-      admin.roles << Role.find_or_create_by_name("admin") 
+      admin.roles << Role.find_or_create_by_name("admin")
       admin.save!
   end
   
