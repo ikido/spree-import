@@ -1,3 +1,11 @@
+ Important Notice
+-------
+
+As I have used this and my shop is running I have no use for this code anymore:
+
+This Repository will be deleted next week (15.6)
+-------
+
  Import
 -------
 Hopes to help you, should you need to import products into spree.
